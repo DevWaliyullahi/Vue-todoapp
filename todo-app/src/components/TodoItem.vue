@@ -1,36 +1,42 @@
 <template>
-    <div>
-      <input type="checkbox" v-model="todo.completed" @change="toggleCompletion">
-      <span :class="{ 'completed': todo.completed }">{{ todo.text }}</span>
-      <button @click="removeTodo">Remove</button>
-    </div>
-  </template>
-<script setup lang="ts">
+  <div>
+    <input type="checkbox" v-model="todo.completed">
+    <span :class="{ 'completed': todo.completed }">{{ todo.text }}</span>
+    <button @click="$emit('remove')">Remove</button>
+    <button @click="isEditing = true">Edit</button> 
+    <input v-if="isEditing" type="text" v-model="editedText" @keyup.enter="saveEdit" @blur="cancelEdit">
+  </div>
+</template>
 
-import { defineProps } from 'vue';
+<script>
+import { defineComponent } from 'vue';
 
-const props = defineProps<{
-  todo: {
-    id: number;
-    text: string;
-    completed: boolean;
-  };
-}>();
-
-// Use type assertion to specify the type of emit
-const { emit } = defineEmits(['toggle', 'remove']) as {
-  (event: 'toggle', id: number): void;
-  (event: 'remove', id: number): void;
-};
-
-const toggleCompletion = () => {
-  emit('toggle', props.todo.id);
-};
-
-const removeTodo = () => {
-  emit('remove', props.todo.id);
-};
+export default defineComponent({
+  props: {
+    todo: Object,
+  },
+  data() {
+    return {
+      isEditing: false,
+      editedText: this.todo.text,
+    };
+  },
+  methods: {
+    saveEdit() {
+      this.$emit('edit', this.editedText);
+      this.isEditing = false;
+    },
+    cancelEdit() {
+      this.isEditing = false;
+      this.editedText = this.todo.text;
+    },
+  },
+});
 </script>
+
 <style scoped>
-@import '../style.css';
+.completed {
+  text-decoration: line-through;
+}
 </style>
+
